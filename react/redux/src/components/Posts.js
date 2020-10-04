@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { fetchPosts } from "../actions/PostActions";
+import { fetchPosts, PostActions } from "../actions";
 import PropTypes from "prop-types";
 
 class Posts extends Component {
@@ -34,7 +34,7 @@ Posts.PropType = {
 };
 
 const mapStateToProps = (state) => {
-    console.log("mapStateToProps:: state:", state);
+    console.log("Posts: mapStateToProps:: state:", state);
     return {
         posts: state.PostReducer.items,
         newPost: state.PostReducer.item,
