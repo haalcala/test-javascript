@@ -4,9 +4,12 @@ import {
     FETCH_ANNOUNCEMENTS,
     FETCH_POSTS,
     HIDE_MODAL,
-    NEW_ANNOUCEMENT,
+    NEW_ANNOUNCEMENT,
     NEW_POST,
     SHOW_MODAL,
+    DELETE_ANNOUNCEMENT,
+    UPDATE_ANNOUNCEMENT,
+    SHOW_ANNOUNCEMENT_FOR_UPDATE,
 } from "./action_types";
 
 export const setIsLogged = (isLogged) => async (dispatch) => {
@@ -87,30 +90,53 @@ export const fetchAnnouncements = () => (dispatch) => {
     });
 };
 
-export const createAnnouncement = () => (dispatch) => {
-    const announcements = [
-        {
-            sender_name: "Remy Sharp",
-            message_title: "Brunch this weekend?",
-            message_body: "— I'll be in your neighborhood doing errands this…",
-        },
-        {
-            sender_name: "Travis Howard",
-            message_title: "Summer BBQ",
-            message_body: " — Wish I could come, but I'm out of town this…",
-        },
-        {
-            sender_name: "Cindy Baker",
-            message_title: "Oui Oui",
-            message_body:
-                " — Do you have Paris recommendations? Have you ever…",
-        },
-    ];
+export const createAnnouncement = (title, message) => async (dispatch) => {
+    const posts = await (
+        await fetch("https://jsonplaceholder.typicode.com/posts")
+    ).json();
+
+    const announcements = posts.map((post) => {
+        return {
+            message_title: post.title,
+            message_body: post.body,
+        };
+    });
+
+    const announcement =
+        title && message
+            ? {
+                  message_title: title,
+                  message_body: message,
+              }
+            : announcements[Math.floor(Math.random() * announcements.length)];
+
+    const payload = announcement;
 
     dispatch({
-        type: NEW_ANNOUCEMENT,
-        payload: [
-            announcements[Math.floor(Math.random() * announcements.length)],
-        ],
+        type: NEW_ANNOUNCEMENT,
+        payload,
+    });
+};
+
+export const deleteAnnouncement = (announcement_id) => async (dispatch) => {
+    dispatch({
+        type: DELETE_ANNOUNCEMENT,
+        payload: announcement_id,
+    });
+};
+
+export const updateAnnouncement = (announcement) => async (dispatch) => {
+    dispatch({
+        type: UPDATE_ANNOUNCEMENT,
+        payload: announcement,
+    });
+};
+
+export const showAnnouncementForUpdate = (announcement_id) => async (
+    dispatch
+) => {
+    dispatch({
+        type: SHOW_ANNOUNCEMENT_FOR_UPDATE,
+        payload: announcement_id,
     });
 };

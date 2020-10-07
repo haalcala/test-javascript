@@ -1,28 +1,55 @@
 import React, { useEffect, useState } from "react";
+import clsx from "clsx";
+
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import {
+    AppBar,
     Avatar,
+    Button,
+    Container,
     Divider,
+    Drawer,
+    IconButton,
     List,
     ListItem,
     ListItemAvatar,
     ListItemText,
     makeStyles,
+    Toolbar,
     Typography,
 } from "@material-ui/core";
 
-const Root = ({
-    visible,
-    close,
-    theme,
-    subMenu,
-    serverVersion,
-    openRootModal,
-    announcements,
-    fetchAnnouncements,
-}) => {
-    console.log("announcements::", announcements);
+import MenuIcon from "@material-ui/icons/Menu";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import InboxIcon from "@material-ui/icons/Inbox";
+import MailIcon from "@material-ui/icons/Mail";
+import AnnouncementList from "./AnnouncementList";
+import NewAnnouncement from "./NewAnnouncement";
+
+const drawerWidth = 240;
+
+const Root = (props) => {
+    const {
+        visible,
+        close,
+        theme,
+        subMenu,
+        serverVersion,
+        openRootModal,
+        announcements,
+        fetchAnnouncements,
+        announcement_to_update,
+    } = props;
+    console.log(
+        "announcements::",
+        announcements,
+        "announcement_to_update:",
+        announcement_to_update
+    );
+
     const style = getStyle(theme);
 
     const useStyles = makeStyles((theme) => ({
@@ -30,9 +57,67 @@ const Root = ({
             width: "100%",
             maxWidth: "36ch",
             backgroundColor: theme.palette.background.paper,
+            flexGrow: 1,
         },
         inline: {
             display: "inline",
+        },
+        // root: {
+        //     flexGrow: 1,
+        //   },
+        menuButton: {
+            marginRight: theme.spacing(2),
+        },
+        title: {
+            flexGrow: 1,
+        },
+        appBar: {
+            transition: theme.transitions.create(["margin", "width"], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+            }),
+        },
+        appBarShift: {
+            width: `calc(100% - ${drawerWidth}px)`,
+            marginLeft: drawerWidth,
+            transition: theme.transitions.create(["margin", "width"], {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        },
+        hide: {
+            display: "none",
+        },
+        drawer: {
+            width: drawerWidth,
+            flexShrink: 0,
+        },
+        drawerPaper: {
+            width: drawerWidth,
+        },
+        drawerHeader: {
+            display: "flex",
+            alignItems: "center",
+            padding: theme.spacing(0, 1),
+            // necessary for content to be below app bar
+            ...theme.mixins.toolbar,
+            justifyContent: "flex-end",
+        },
+        content: {
+            flexGrow: 1,
+            padding: theme.spacing(3),
+            transition: theme.transitions.create("margin", {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+            }),
+            marginLeft: -drawerWidth,
+        },
+        contentShift: {
+            transition: theme.transitions.create("margin", {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+            marginLeft: 0,
         },
     }));
 
@@ -64,6 +149,20 @@ const Root = ({
     // ) {
     //     openRootModal();
     // }
+
+    const [open, setOpen] = React.useState(false);
+
+    const handleDrawerOpen = () => {
+        setOpen(true);
+    };
+
+    const handleDrawerClose = () => {
+        setOpen(false);
+    };
+
+    const [selected, setSelected] = useState("list");
+
+    openRootModal();
 
     if (!visible) {
         return null;
@@ -127,26 +226,117 @@ const Root = ({
         </List>
     );
 
+    const components = {
+        new: {
+            title: "New Announcement",
+            component: <NewAnnouncement {...props} classes={classes} />,
+        },
+        update: {
+            title: "Update Announcement",
+            component: <NewAnnouncement {...props} classes={classes} />,
+        },
+        list: {
+            title: "List Announcements",
+            component: <AnnouncementList {...props} classes={classes} />,
+        },
+    };
+
+    const component = announcement_to_update
+        ? components["update"]
+        : components[selected];
+
+    console.log(
+        "component:",
+        component,
+        "announcement_to_update:",
+        announcement_to_update,
+        "selected:",
+        selected
+    );
+
     return (
-        <div style={style.backdrop} onClick={close}>
-            <div style={style.modal}>
-                {/* <React.Fragment>
-                    <FormattedMessage
-                        id="version_bar.new"
-                        defaultMessage="A new version of Mattermost is available."
-                    />
-                    <br />
-                    <br />
-                    <a onClick={() => window.location.reload()}>
-                        <FormattedMessage
-                            id="version_bar.refresh"
-                            defaultMessage="Refresh the app now"
-                        />
-                    </a>
-                    {"."}
-                </React.Fragment> */}
-                {listItems}
-            </div>
+        <div
+            className={clsx(classes.appBar, {
+                [classes.appBarShift]: open,
+            })}
+            style={{ minHeight: "300px", border: "1px solid blue" }}
+        >
+            <React.Fragment>
+                <AppBar
+                    position="fixed"
+                    className={clsx(classes.appBar, {
+                        [classes.appBarShift]: open,
+                    })}
+                >
+                    <Toolbar>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={handleDrawerOpen}
+                            edge="start"
+                            className={clsx(
+                                classes.menuButton,
+                                open && classes.hide
+                            )}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" noWrap>
+                            {component.title}
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    className={classes.drawer}
+                    variant="persistent"
+                    anchor="left"
+                    open={open}
+                    classes={{
+                        paper: classes.drawerPaper,
+                    }}
+                >
+                    <div className={classes.drawerHeader}>
+                        <IconButton onClick={handleDrawerClose}>
+                            {theme.direction === "ltr" ? (
+                                <ChevronLeftIcon />
+                            ) : (
+                                <ChevronRightIcon />
+                            )}
+                        </IconButton>
+                    </div>
+                    <Divider />
+                    <List>
+                        <ListItem
+                            button
+                            onClick={() => {
+                                setSelected("new");
+                                setOpen(false);
+                            }}
+                        >
+                            <ListItemIcon>
+                                <InboxIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="New Announcement" />
+                        </ListItem>
+                        <ListItem
+                            button
+                            onClick={() => {
+                                setSelected("list");
+                                setOpen(false);
+                            }}
+                        >
+                            <ListItemIcon>
+                                <InboxIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="List Announcements" />
+                        </ListItem>
+                    </List>
+                </Drawer>
+                <div className={classes.drawerHeader} />
+                <Container style={{ padding: "1em" }}>
+                    {component.component}
+                </Container>
+            </React.Fragment>
         </div>
     );
 };

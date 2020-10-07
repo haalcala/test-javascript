@@ -19,6 +19,7 @@ function App() {
                     flexDirection: "column",
                 }}
             >
+                <Root />
                 <Container
                     style={{
                         margin: 0,
@@ -33,7 +34,6 @@ function App() {
                 <PostForm />
                 <hr />
                 <Posts />
-                <Root />
             </div>
         </Provider>
     );

@@ -8,8 +8,12 @@ import {
     SHOW_MODAL,
     HIDE_MODAL,
     FETCH_ANNOUNCEMENTS,
-    NEW_ANNOUCEMENT,
+    NEW_ANNOUNCEMENT,
+    SHOW_ANNOUNCEMENT_FOR_UPDATE,
+    UPDATE_ANNOUNCEMENT,
+    DELETE_ANNOUNCEMENT,
 } from "./action_types";
+import { new_announcements } from "./selectors";
 
 const LoginReducer = (
     state = {
@@ -78,22 +82,91 @@ const showModalReducer = (state = false, action) => {
     }
 };
 
-const annoucementsReducer = (
-    state = { announcements: [], new_announcements: [], count: 0 },
+const announcements = (
+    state = {
+        announcements: [],
+        new_announcements: [],
+        announcement_to_update: null,
+    },
     action
 ) => {
-    console.log("annoucementsReducer:: state:", state, "action:", action);
+    console.log(
+        "announcements:: state:",
+        state,
+        "action:",
+        action,
+        action.type === "SHOW_ANNOUNCEMENT_FOR_UPDATE"
+    );
     switch (action.type) {
         case FETCH_ANNOUNCEMENTS:
             return {
                 ...state,
-                count: state.count + 1,
                 announcements: action.payload,
             };
-        case NEW_ANNOUCEMENT:
-            state.announcements.unshift(...action.payload);
+        case NEW_ANNOUNCEMENT:
+            const _announcements = [
+                {
+                    ...action.payload,
+                    id: state.announcements.length + 1,
+                    created: new Date().toString(),
+                    validity: new Date(
+                        new Date().getTime() + 60 * 60 * 24
+                    ).toString(),
+                },
+            ];
 
-            return { ...state, new_announcements: action.payload };
+            console.log(
+                "1111 _announcements:",
+                _announcements,
+                typeof _announcements
+            );
+
+            return {
+                ...state,
+                new_announcements:
+                    _announcements.length > 0
+                        ? state.new_announcements.concat(_announcements)
+                        : [],
+                announcements: _announcements.concat(state.announcements),
+            };
+        case SHOW_ANNOUNCEMENT_FOR_UPDATE:
+            let announcement_to_update = null;
+
+            state.announcements.map((announcement) => {
+                if (action.payload == announcement.id)
+                    announcement_to_update = announcement;
+            });
+
+            return {
+                ...state,
+                announcement_to_update,
+            };
+        case UPDATE_ANNOUNCEMENT:
+            state.announcements.map((announcement) => {
+                if (action.payload.id == announcement.id) {
+                    announcement.message_title = action.payload.message_title;
+                    announcement.message_body = action.payload.message_body;
+                }
+            });
+
+            return {
+                ...state,
+                announcement_to_update: null,
+            };
+        case DELETE_ANNOUNCEMENT:
+            let announcement_id_to_delete;
+
+            state.announcements.map((announcement, index) => {
+                if (action.payload == announcement.id) {
+                    announcement_id_to_delete = index;
+                }
+            });
+
+            if (announcement_id_to_delete >= 0) {
+                state.announcements.splice(announcement_id_to_delete, 1);
+            }
+
+            return { ...state };
         default:
             return state;
     }
@@ -103,5 +176,5 @@ export default combineReducers({
     PostReducer,
     LoginReducer,
     showModal: showModalReducer,
-    announcements: annoucementsReducer,
+    announcements,
 });

@@ -4,8 +4,6 @@ import thunk from "redux-thunk";
 import rootReducer from "../reducers";
 
 const initialState = {
-    initial_state_from_store: 1,
-
     entities: { general: { serverVersion: "" } },
 };
 
